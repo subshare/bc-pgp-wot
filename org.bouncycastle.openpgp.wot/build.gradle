@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'maven'
+
+project.ext.bouncycastleVersion = '1.52'
+
+group = 'org.subshare'
+version = '1.52-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+ 	compile group: 'org.bouncycastle', name: 'bcpg-jdk15on', version: bouncycastleVersion
+    compile "org.slf4j:slf4j-api:1.7.21"
+    testCompile 'junit:junit:4.12'
+}
