@@ -3,12 +3,22 @@ apply plugin: 'osgi'
 apply plugin: 'maven'
 
 project.ext.bouncycastleVersion = '1.52'
+project.ext.mavenDeployerRepoUrl = "file:/tmp/maven"
+
+def mavenDeployerRepoUrlSysProp = System.getProperty("mavenDeployerRepoUrl");
+if (mavenDeployerRepoUrlSysProp != null && ! mavenDeployerRepoUrlSysProp.isEmpty())
+	project.ext.mavenDeployerRepoUrl = mavenDeployerRepoUrlSysProp;
 
 group = 'org.subshare'
-version = '1.52-SNAPSHOT'
+version = '1.52.1-SNAPSHOT'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
+
+if (version.endsWith("-SNAPSHOT"))
+	project.ext.mavenDeployerRepoUrl = project.ext.mavenDeployerRepoUrl + "/snapshot";
+else
+	project.ext.mavenDeployerRepoUrl = project.ext.mavenDeployerRepoUrl + "/release";
 
 repositories {
     jcenter()
@@ -19,4 +29,12 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.21"
     testCompile 'junit:junit:4.12'
     testCompile 'org.assertj:assertj-core:1.5.0'
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: mavenDeployerRepoUrl)
+        }
+    }
 }
