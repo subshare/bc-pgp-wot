@@ -3,17 +3,18 @@ apply plugin: 'osgi'
 apply plugin: 'maven'
 
 project.ext.bouncycastleVersion = '1.52'
-project.ext.mavenDeployerRepoUrl = "file:/tmp/maven"
-
-def mavenDeployerRepoUrlSysProp = System.getProperty("mavenDeployerRepoUrl");
-if (mavenDeployerRepoUrlSysProp != null && ! mavenDeployerRepoUrlSysProp.isEmpty())
-	project.ext.mavenDeployerRepoUrl = mavenDeployerRepoUrlSysProp;
 
 group = 'org.bouncycastle'
 version = '1.52.2-SNAPSHOT'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
+
+project.ext.mavenDeployerRepoUrl = "file:/tmp/maven"
+
+def mavenDeployerRepoUrlSysProp = System.getProperty("mavenDeployerRepoUrl");
+if (mavenDeployerRepoUrlSysProp != null && ! mavenDeployerRepoUrlSysProp.isEmpty())
+	project.ext.mavenDeployerRepoUrl = mavenDeployerRepoUrlSysProp;
 
 if (version.endsWith("-SNAPSHOT"))
 	project.ext.mavenDeployerRepoUrl = project.ext.mavenDeployerRepoUrl + "/snapshot";
