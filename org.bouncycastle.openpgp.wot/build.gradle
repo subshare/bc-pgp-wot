@@ -5,7 +5,7 @@ apply plugin: 'maven'
 project.ext.bouncycastleVersion = '1.52'
 
 group = 'org.bouncycastle'
-version = '1.52.2-SNAPSHOT'
+version = '1.52.2'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7

@@ -11,13 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.bouncycastle.openpgp.wot.AbstractTrustDbTest;
+import org.bouncycastle.openpgp.wot.CanonicalString;
 import org.bouncycastle.openpgp.wot.TrustDb;
-import org.bouncycastle.openpgp.wot.internal.Mutex;
-import org.bouncycastle.openpgp.wot.internal.TrustDbImpl;
-import org.bouncycastle.openpgp.wot.internal.TrustDbIo;
-import org.bouncycastle.openpgp.wot.internal.TrustRecord;
 import org.bouncycastle.openpgp.wot.internal.TrustRecord.Trust;
-import org.bouncycastle.openpgp.wot.internal.TrustRecordType;
 import org.bouncycastle.openpgp.wot.key.PgpKey;
 import org.bouncycastle.openpgp.wot.key.PgpKeyId;
 import org.bouncycastle.openpgp.wot.key.PgpUserId;
@@ -30,13 +26,13 @@ import org.slf4j.LoggerFactory;
 public class TrustDbProductiveFileTest extends AbstractTrustDbTest {
 	private static final Logger logger = LoggerFactory.getLogger(TrustDbProductiveFileTest.class);
 
-	private Mutex mutex;
+	private Object mutex;
 
 	@Override
-	protected void initGnupgHomeDir() {
+	protected void initGnupgHomeDir() throws Exception {
 		String userHome = System.getProperty("user.home");
 		gnupgHomeDir = new File(userHome, ".gnupg");
-		mutex = Mutex.forPgpDir(gnupgHomeDir);
+		mutex = CanonicalString.canonicalize(gnupgHomeDir.getCanonicalPath());
 	}
 
 	@Override

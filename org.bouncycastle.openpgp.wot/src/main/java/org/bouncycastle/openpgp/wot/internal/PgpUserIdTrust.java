@@ -13,8 +13,8 @@ class PgpUserIdTrust
 
     public PgpUserIdTrust(final PgpKeyTrust pgpKeyTrust, final PgpUserId pgpUserId)
     {
-        this.pgpKeyTrust = assertNotNull("pgpKeyTrust", pgpKeyTrust);
-        this.pgpUserId = assertNotNull("pgpUserId", pgpUserId);
+        this.pgpKeyTrust = assertNotNull(pgpKeyTrust, "pgpKeyTrust");
+        this.pgpUserId = assertNotNull(pgpUserId, "pgpUserId");
     }
 
     public PgpKeyTrust getPgpKeyTrust()

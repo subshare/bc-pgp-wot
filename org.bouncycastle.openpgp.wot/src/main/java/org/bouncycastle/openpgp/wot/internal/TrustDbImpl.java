@@ -18,6 +18,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.wot.Config;
 import org.bouncycastle.openpgp.wot.OwnerTrust;
+import org.bouncycastle.openpgp.wot.PgpFile;
 import org.bouncycastle.openpgp.wot.TrustConst;
 import org.bouncycastle.openpgp.wot.TrustDb;
 import org.bouncycastle.openpgp.wot.TrustModel;
@@ -41,7 +42,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     private static final Logger logger = LoggerFactory.getLogger(TrustDbImpl.class);
 
     private final PgpKeyRegistry pgpKeyRegistry;
-    private final Mutex mutex;
+    private final Object mutex;
     private final TrustDbIo trustDbIo;
 
     private long startTime;
@@ -65,11 +66,11 @@ public class TrustDbImpl implements TrustDb, TrustConst
      *            the key-registry. Must not be <code>null</code>.
      * @see TrustDb.Helper#createInstance(File, PgpKeyRegistry)
      */
-    public TrustDbImpl(final File file, final PgpKeyRegistry pgpKeyRegistry)
+    public TrustDbImpl(final PgpFile file, final PgpKeyRegistry pgpKeyRegistry)
     {
-        assertNotNull("file", file);
-        this.pgpKeyRegistry = assertNotNull("pgpKeyRegistry", pgpKeyRegistry);
-        this.mutex = Mutex.forPubringFile(pgpKeyRegistry.getPubringFile());
+        assertNotNull(file, "file");
+        this.pgpKeyRegistry = assertNotNull(pgpKeyRegistry, "pgpKeyRegistry");
+        this.mutex = pgpKeyRegistry.getPubringFile().getPgpId();
         this.trustDbIo = new TrustDbIo(file, mutex);
     }
 
@@ -149,7 +150,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public OwnerTrust getOwnerTrust(PgpKey pgpKey)
     {
         synchronized (mutex) {
-            assertNotNull("pgpKey", pgpKey);
+            assertNotNull(pgpKey, "pgpKey");
             if (pgpKey.getMasterKey() != null)
                 pgpKey = pgpKey.getMasterKey();
 
@@ -161,8 +162,8 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public void setOwnerTrust(PgpKey pgpKey, final OwnerTrust ownerTrust)
     {
         synchronized (mutex) {
-            assertNotNull("pgpKey", pgpKey);
-            assertNotNull("ownerTrust", ownerTrust);
+            assertNotNull(pgpKey, "pgpKey");
+            assertNotNull(ownerTrust, "ownerTrust");
             if (pgpKey.getMasterKey() != null)
                 pgpKey = pgpKey.getMasterKey();
 
@@ -174,7 +175,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public OwnerTrust getOwnerTrust(final PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             // if (trustdb_args.no_trustdb && opt.trust_model == TM_ALWAYS)
             // return TRUST_UNKNOWN; // TODO maybe we should support other trust models...
 
@@ -190,8 +191,8 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public void setOwnerTrust(final PGPPublicKey publicKey, final OwnerTrust ownerTrust)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
-            assertNotNull("ownerTrust", ownerTrust);
+            assertNotNull(publicKey, "publicKey");
+            assertNotNull(ownerTrust, "ownerTrust");
 
             TrustRecord.Trust trust = getTrustByPublicKey(publicKey);
             if (trust == null)
@@ -214,7 +215,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     protected TrustRecord.Trust getTrustByPublicKey(PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             TrustRecord.Trust trust = trustDbIo.getTrustByPublicKey(publicKey);
             return trust;
         }
@@ -225,7 +226,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public int getValidityRaw(final PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             return _getValidity(publicKey, (PgpUserIdNameHash) null, true);
         }
     }
@@ -235,8 +236,8 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public int getValidityRaw(final PGPPublicKey publicKey, final PgpUserIdNameHash pgpUserIdNameHash)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
-            assertNotNull("pgpUserIdNameHash", pgpUserIdNameHash);
+            assertNotNull(publicKey, "publicKey");
+            assertNotNull(pgpUserIdNameHash, "pgpUserIdNameHash");
             return _getValidity(publicKey, pgpUserIdNameHash, true);
         }
     }
@@ -245,7 +246,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public Validity getValidity(final PgpKey pgpKey)
     {
         synchronized (mutex) {
-            assertNotNull("pgpKey", pgpKey);
+            assertNotNull(pgpKey, "pgpKey");
             return getValidity(pgpKey.getPublicKey());
         }
     }
@@ -254,7 +255,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public Validity getValidity(final PgpUserId pgpUserId)
     {
         synchronized (mutex) {
-            assertNotNull("pgpUserId", pgpUserId);
+            assertNotNull(pgpUserId, "pgpUserId");
             return getValidity(pgpUserId.getPgpKey().getPublicKey(), pgpUserId.getNameHash());
         }
     }
@@ -263,7 +264,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public Validity getValidity(final PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             final int numericValue = _getValidity(publicKey, (PgpUserIdNameHash) null, false);
             return Validity.fromNumericValue(numericValue);
         }
@@ -273,8 +274,8 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public Validity getValidity(final PGPPublicKey publicKey, final PgpUserIdNameHash pgpUserIdNameHash)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
-            assertNotNull("pgpUserIdNameHash", pgpUserIdNameHash);
+            assertNotNull(publicKey, "publicKey");
+            assertNotNull(pgpUserIdNameHash, "pgpUserIdNameHash");
             final int numericValue = _getValidity(publicKey, pgpUserIdNameHash, false);
             return Validity.fromNumericValue(numericValue);
         }
@@ -288,7 +289,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
             final boolean withFlags)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             TrustRecord.Trust trust = getTrustByPublicKey(publicKey);
             if (trust == null)
                 return TRUST_UNKNOWN;
@@ -303,7 +304,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
             while (recordNum != 0)
             {
                 TrustRecord.Valid valid = trustDbIo.getTrustRecord(recordNum, TrustRecord.Valid.class);
-                assertNotNull("valid", valid);
+                assertNotNull(valid, "valid");
 
                 if (pgpUserIdNameHash != null)
                 {
@@ -347,7 +348,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     protected void updateValidity(PgpUserId pgpUserId, int depth, int validity, int fullCount, int marginalCount)
     {
         synchronized (mutex) {
-            assertNotNull("pgpUserId", pgpUserId);
+            assertNotNull(pgpUserId, "pgpUserId");
             assertNonNegativeShort("depth", depth);
             assertNonNegativeShort("validity", validity);
             assertNonNegativeShort("fullCount", fullCount);
@@ -396,7 +397,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
 
     private static void assertNonNegativeShort(final String name, final int value)
     {
-        assertNotNull("name", name);
+        assertNotNull(name, "name");
 
         if (value < 0)
             throw new IllegalArgumentException(name + " < 0");
@@ -457,7 +458,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public boolean isExpired(PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
 
             final Date creationTime = publicKey.getCreationTime();
 
@@ -479,7 +480,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public boolean isDisabled(PgpKey pgpKey)
     {
         synchronized (mutex) {
-            assertNotNull("pgpKey", pgpKey);
+            assertNotNull(pgpKey, "pgpKey");
             if (pgpKey.getMasterKey() != null)
                 pgpKey = pgpKey.getMasterKey();
 
@@ -491,7 +492,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public void setDisabled(PgpKey pgpKey, final boolean disabled)
     {
         synchronized (mutex) {
-            assertNotNull("pgpKey", pgpKey);
+            assertNotNull(pgpKey, "pgpKey");
             if (pgpKey.getMasterKey() != null)
                 pgpKey = pgpKey.getMasterKey();
 
@@ -503,7 +504,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public boolean isDisabled(final PGPPublicKey publicKey)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             TrustRecord.Trust trust = trustDbIo.getTrustByFingerprint(publicKey.getFingerprint());
             if (trust == null)
                 return false;
@@ -516,7 +517,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     public void setDisabled(final PGPPublicKey publicKey, final boolean disabled)
     {
         synchronized (mutex) {
-            assertNotNull("publicKey", publicKey);
+            assertNotNull(publicKey, "publicKey");
             TrustRecord.Trust trust = trustDbIo.getTrustByFingerprint(publicKey.getFingerprint());
             if (trust == null)
             {
@@ -543,7 +544,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
         synchronized (mutex) {
             final Config config = Config.getInstance();
             final TrustRecord.Version version = trustDbIo.getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull("version", version);
+            assertNotNull(version, "version");
 
             if (config.getTrustModel() != version.getTrustModel())
             {
@@ -615,7 +616,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
     {
         synchronized (mutex) {
             final TrustRecord.Version version = trustDbIo.getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull("version", version);
+            assertNotNull(version, "version");
             version.setNextCheck(new Date(0));
             trustDbIo.putTrustRecord(version);
         }
@@ -777,7 +778,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
      */
     private void validateKey(final PgpKey pgpKey)
     {
-        assertNotNull("pgpKey", pgpKey);
+        assertNotNull(pgpKey, "pgpKey");
         logger.debug("validateKey: {}", pgpKey);
 
         final Config config = Config.getInstance();

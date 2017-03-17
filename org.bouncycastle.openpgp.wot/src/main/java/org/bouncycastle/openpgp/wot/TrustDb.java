@@ -2,8 +2,6 @@ package org.bouncycastle.openpgp.wot;
 
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
-import java.io.File;
-
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.wot.internal.TrustDbImpl;
 import org.bouncycastle.openpgp.wot.key.PgpKey;
@@ -44,9 +42,9 @@ public interface TrustDb extends AutoCloseable
          *            the key-registry. Must not be <code>null</code>.
          * @return a new instance of a {@code TrustDb}. Never <code>null</code>.
          */
-        public static TrustDb createInstance(final File file, final PgpKeyRegistry pgpKeyRegistry) {
-            assertNotNull("file", file);
-            assertNotNull("pgpKeyRegistry", pgpKeyRegistry);
+        public static TrustDb createInstance(final PgpFile file, final PgpKeyRegistry pgpKeyRegistry) {
+            assertNotNull(file, "file");
+            assertNotNull(pgpKeyRegistry, "pgpKeyRegistry");
             return new TrustDbImpl(file, pgpKeyRegistry);
         }
     }

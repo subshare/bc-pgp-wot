@@ -3,11 +3,7 @@ package org.bouncycastle.openpgp.wot.internal;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,6 +14,8 @@ import java.util.TreeMap;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.wot.Config;
+import org.bouncycastle.openpgp.wot.PgpFile;
+import org.bouncycastle.openpgp.wot.PgpRandomAccessFile;
 import org.bouncycastle.openpgp.wot.TrustConst;
 import org.bouncycastle.openpgp.wot.TrustDbIoException;
 import org.bouncycastle.openpgp.wot.internal.TrustRecord.HashLst;
@@ -44,10 +42,9 @@ class TrustDbIo implements AutoCloseable, TrustConst
     private final LinkedHashSet<Long> cacheRecordNums = new LinkedHashSet<Long>();
     private final Map<Long, TrustRecord> cacheRecordNum2TrustRecord = new HashMap<>();
 
-    private final File file;
-    private final Mutex mutex;
-    private final RandomAccessFile raf;
-    private final FileLock fileLock;
+    private final PgpFile file;
+    private final Object mutex;
+    private final PgpRandomAccessFile raf;
     private boolean closed;
 
     /**
@@ -61,65 +58,15 @@ class TrustDbIo implements AutoCloseable, TrustConst
      * @throws TrustDbIoException
      *             if reading from/writing to the {@code trustdb.gpg} failed.
      */
-    public TrustDbIo(final File file, final Mutex mutex) throws TrustDbIoException
+    public TrustDbIo(final PgpFile file, final Object mutex) throws TrustDbIoException
     {
-        this.file = assertNotNull("file", file);
-        this.mutex = assertNotNull("mutex", mutex);
-        RandomAccessFile raf = null;
-        FileLock fileLock = null;
-        try
-        {
-            raf = new RandomAccessFile(file, "rw");
-
-            // Try to lock the file for 60 seconds - using tryLock() instead of lock(), because I ran
-            // into exceptions already, even though lock() should wait according to javadoc.
-            final int timeoutMillis = 60 * 1000;
-            final int sleepMillis = 500;
-            final int tryCount = timeoutMillis / sleepMillis;
-            for (int i = 0; i < tryCount; ++i)
-            {
-                if (fileLock == null && i != 0) {
-                    logger.warn("Locking file '{}' failed. Retrying.", file.getAbsolutePath());
-                    try
-                    {
-                        Thread.sleep(sleepMillis);
-                    } catch (InterruptedException e)
-                    {
-                        doNothing(); // ignore
-                    }
-                }
-
-                try
-                {
-                    fileLock = raf.getChannel().tryLock();
-                } catch (OverlappingFileLockException y)
-                {
-                    doNothing(); // ignore (it's quite strange that *try*Lock() might still throw this exception at all)
-                }
-                if (fileLock != null)
-                    break;
-            }
-
-            if (fileLock == null)
-                fileLock = raf.getChannel().lock();
-
-        } catch (IOException x) {
-            throw new TrustDbIoException(x);
-        } finally {
-            // If opening the file succeeded, but locking it failed, we must close the RandomAccessFile now.
-            if (fileLock == null && raf != null) {
-                try {
-                    // We only come here, if there's currently an exception flying. Hence, we close the file
-                    // inside this new try-catch-block in order to prevent the primary exception from being
-                    // lost. A new exception otherwise would suppress the primary exception.
-                    raf.close();
-                } catch (Exception e) {
-                    logger.warn("Closing file failed: " + e, e);
-                }
-            }
+        this.file = assertNotNull(file, "file");
+        this.mutex = assertNotNull(mutex, "mutex");
+        try {
+        	this.raf = file.createRandomAccessFile();
+        } catch (IOException e) {
+        	throw new TrustDbIoException(e);
         }
-        this.raf = raf;
-        this.fileLock = fileLock;
 
         if (getTrustRecord(0, TrustRecord.Version.class) == null)
             createVersionRecord();
@@ -148,10 +95,10 @@ class TrustDbIo implements AutoCloseable, TrustConst
     public void updateVersionRecord(final Date nextCheck) throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull("nextCheck", nextCheck);
+            assertNotNull(nextCheck, "nextCheck");
 
             TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull("version", version);
+            assertNotNull(version, "version");
 
             Config config = Config.getInstance();
 
@@ -191,7 +138,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
             if (trustHashRec == 0)
             {
                 TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-                assertNotNull("version", version);
+                assertNotNull(version, "version");
 
                 trustHashRec = version.getTrustHashTbl();
                 if (trustHashRec == 0)
@@ -212,7 +159,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
     private void createHashTable(int type) throws TrustDbIoException
     {
         TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-        assertNotNull("version", version);
+        assertNotNull(version, "version");
 
         flush(); // make sure, raf.length is correct.
 
@@ -221,7 +168,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
         try
         {
-            offset = raf.length();
+            offset = raf.getLength();
             raf.seek(offset);
         } catch (IOException e)
         {
@@ -256,13 +203,13 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
             // Look for Free records.
             final TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull("version", version);
+            assertNotNull(version, "version");
 
             if (version.getFirstFree() != 0)
             {
                 recordNum = version.getFirstFree();
                 TrustRecord.Free free = getTrustRecord(recordNum, TrustRecord.Free.class);
-                assertNotNull("free", free);
+                assertNotNull(free, "free");
 
                 // Update dir record.
                 version.setFirstFree(free.getNext());
@@ -276,7 +223,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                 final long fileLength;
                 try
                 {
-                    fileLength = raf.length();
+                    fileLength = raf.getLength();
                 } catch (IOException e)
                 {
                     throw new TrustDbIoException(e);
@@ -355,7 +302,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                     return null; // not found!
 
                 TrustRecord record = getTrustRecord(item);
-                assertNotNull("record", record);
+                assertNotNull(record, "record");
 
                 if (record.getType() == TrustRecordType.HTBL)
                 {
@@ -385,7 +332,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         if (hashList.getNext() != 0)
                         {
                             hashList = getTrustRecord(hashList.getNext(), TrustRecord.HashLst.class);
-                            assertNotNull("hashList", hashList);
+                            assertNotNull(hashList, "hashList");
                         }
                         else
                             return null;
@@ -404,7 +351,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
             throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull("expectedTrustRecordClass", expectedTrustRecordClass);
+            assertNotNull(expectedTrustRecordClass, "expectedTrustRecordClass");
             final TrustRecordType expectedType = expectedTrustRecordClass ==
                     TrustRecord.class ? null : TrustRecordType.fromClass(expectedTrustRecordClass);
 
@@ -453,7 +400,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         if (buf[bufIdx++] != 'g'
                                 || buf[bufIdx++] != 'p'
                                 || buf[bufIdx++] != 'g')
-                            throw new TrustDbIoException(String.format("Not a trustdb file: %s", file.getAbsolutePath()));
+                            throw new TrustDbIoException(String.format("Not a trustdb file: %s", file.getId()));
 
                         version.version = (short) (buf[bufIdx++] & 0xFF);
                         version.marginalsNeeded = (short) (buf[bufIdx++] & 0xFF);
@@ -478,7 +425,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         if (version.version != 3)
                             throw new TrustDbIoException(String.format(
                                     "Wrong version number (3 expected, but %d found): %s", version.version,
-                                    file.getAbsolutePath()));
+                                    file.getId()));
                         break;
                     case FREE:
                         final TrustRecord.Free free = new TrustRecord.Free();
@@ -549,7 +496,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
     public void putTrustRecord(final TrustRecord trustRecord) throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull("trustRecord", trustRecord);
+            assertNotNull(trustRecord, "trustRecord");
 
             if (trustRecord.getRecordNum() < 0)
                 trustRecord.setRecordNum(newRecordNum());
@@ -608,7 +555,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
                     if (version.version != 3)
                         throw new TrustDbIoException(String.format("Wrong version number (3 expected, but %d found): %s",
-                                version.version, file.getAbsolutePath()));
+                                version.version, file.getId()));
                     break;
                 case FREE:
                     final TrustRecord.Free free = (TrustRecord.Free) record;
@@ -733,7 +680,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                                 break; // key is not in the list
 
                             hashList = getTrustRecord(hashList.getNext(), TrustRecord.HashLst.class);
-                            assertNotNull("hashList", hashList);
+                            assertNotNull(hashList, "hashList");
                         }
 
                         // The following line was added by me, Marco. I think the original GnuPG code missed this: We should
@@ -791,7 +738,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         putTrustRecord(hashList);
 
                         // Update the hashtable record.
-                        assertNotNull("lastHashTable", lastHashTable).setItem(msb % ITEMS_PER_HTBL_RECORD,
+                        assertNotNull(lastHashTable, "lastHashTable").setItem(msb % ITEMS_PER_HTBL_RECORD,
                                 hashList.getRecordNum());
                         putTrustRecord(lastHashTable);
                         return;
@@ -810,7 +757,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
     private void putToCache(TrustRecord trustRecord)
     {
-        assertNotNull("trustRecord", trustRecord);
+        assertNotNull(trustRecord, "trustRecord");
         final long recordNum = trustRecord.getRecordNum();
 
         if (cacheRecordNum2TrustRecord.containsKey(recordNum))
@@ -837,7 +784,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
             try
             {
-                raf.getFD().sync();
+                raf.flush();
             } catch (IOException e)
             {
                 throw new TrustDbIoException(e);
@@ -856,7 +803,6 @@ class TrustDbIo implements AutoCloseable, TrustConst
             closed = true;
             try
             {
-                fileLock.release();
                 raf.close();
             } catch (IOException e)
             {

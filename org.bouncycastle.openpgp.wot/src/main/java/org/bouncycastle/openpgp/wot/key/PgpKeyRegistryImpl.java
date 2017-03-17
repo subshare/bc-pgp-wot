@@ -3,8 +3,6 @@ package org.bouncycastle.openpgp.wot.key;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,7 +27,7 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
-import org.bouncycastle.openpgp.wot.internal.Mutex;
+import org.bouncycastle.openpgp.wot.PgpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +38,9 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
 {
     private static final Logger logger = LoggerFactory.getLogger(PgpKeyRegistryImpl.class);
 
-    private final File pubringFile;
-    private final File secringFile;
-    private final Mutex mutex;
+    private final PgpFile pubringFile;
+    private final PgpFile secringFile;
+    private final Object mutex;
 
     private long pubringFileLastModified = Long.MIN_VALUE;
     private long secringFileLastModified = Long.MIN_VALUE;
@@ -63,21 +61,21 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
      *            the file containing the secret keys - usually named {@code secring.gpg} (located in {@code ~/.gnupg/}
      *            ). Must not be <code>null</code>. The file does not need to exist, though.
      */
-    public PgpKeyRegistryImpl(File pubringFile, File secringFile)
+    public PgpKeyRegistryImpl(PgpFile pubringFile, PgpFile secringFile)
     {
-        this.pubringFile = assertNotNull("pubringFile", pubringFile);
-        this.secringFile = assertNotNull("secringFile", secringFile);
-        this.mutex = Mutex.forPubringFile(pubringFile);
+        this.pubringFile = assertNotNull(pubringFile, "pubringFile");
+        this.secringFile = assertNotNull(secringFile, "secringFile");
+        this.mutex = pubringFile.getPgpId();
     }
 
     @Override
-    public File getPubringFile()
+    public PgpFile getPubringFile()
     {
         return pubringFile;
     }
 
     @Override
-    public File getSecringFile()
+    public PgpFile getSecringFile()
     {
         return secringFile;
     }
@@ -98,7 +96,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public PgpKey getPgpKey(final PgpKeyId pgpKeyId) throws IllegalArgumentException
     {
         synchronized (mutex) {
-            assertNotNull("pgpKeyId", pgpKeyId);
+            assertNotNull(pgpKeyId, "pgpKeyId");
             loadIfNeeded();
             final PgpKey pgpKey = pgpKeyId2pgpKey.get(pgpKeyId);
             return pgpKey;
@@ -121,7 +119,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public PgpKey getPgpKey(final PgpKeyFingerprint pgpKeyFingerprint) throws IllegalArgumentException
     {
         synchronized (mutex) {
-            assertNotNull("pgpKeyFingerprint", pgpKeyFingerprint);
+            assertNotNull(pgpKeyFingerprint, "pgpKeyFingerprint");
             loadIfNeeded();
             final PgpKey pgpKey = pgpKeyFingerprint2pgpKey.get(pgpKeyFingerprint);
             return pgpKey;
@@ -153,8 +151,8 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     {
         synchronized (mutex) {
             if (pgpKeyId2pgpKey == null
-                    || getPubringFile().lastModified() != pubringFileLastModified
-                    || getSecringFile().lastModified() != secringFileLastModified)
+                    || getPubringFile().getLastModified() != pubringFileLastModified
+                    || getSecringFile().getLastModified() != secringFileLastModified)
             {
                 logger.debug("loadIfNeeded: invoking load().");
                 load();
@@ -178,66 +176,60 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
             final long secringFileLastModified;
             try
             {
-                final File secringFile = getSecringFile();
+                final PgpFile secringFile = getSecringFile();
                 logger.debug("load: secringFile='{}'", secringFile);
-                secringFileLastModified = secringFile.lastModified();
-                if (secringFile.isFile())
+                secringFileLastModified = secringFile.getLastModified();
+                final PGPSecretKeyRingCollection pgpSecretKeyRingCollection;
+                try (InputStream in = new BufferedInputStream(secringFile.createInputStream());)
                 {
-                    final PGPSecretKeyRingCollection pgpSecretKeyRingCollection;
-                    try (InputStream in = new BufferedInputStream(new FileInputStream(secringFile));)
+                    pgpSecretKeyRingCollection = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(in),
+                            new BcKeyFingerprintCalculator());
+                }
+                for (final Iterator<?> it1 = pgpSecretKeyRingCollection.getKeyRings(); it1.hasNext();)
+                {
+                    final PGPSecretKeyRing keyRing = (PGPSecretKeyRing) it1.next();
+                    PgpKey masterKey = null;
+                    for (final Iterator<?> it2 = keyRing.getPublicKeys(); it2.hasNext();)
                     {
-                        pgpSecretKeyRingCollection = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(in),
-                                new BcKeyFingerprintCalculator());
+                        final PGPPublicKey publicKey = (PGPPublicKey) it2.next();
+                        masterKey = enlistPublicKey(pgpKeyFingerprint2pgpKey, pgpKeyId2pgpKey,
+                                pgpKeyId2masterKey, masterKey, keyRing, publicKey);
                     }
-                    for (final Iterator<?> it1 = pgpSecretKeyRingCollection.getKeyRings(); it1.hasNext();)
+
+                    for (final Iterator<?> it3 = keyRing.getSecretKeys(); it3.hasNext();)
                     {
-                        final PGPSecretKeyRing keyRing = (PGPSecretKeyRing) it1.next();
-                        PgpKey masterKey = null;
-                        for (final Iterator<?> it2 = keyRing.getPublicKeys(); it2.hasNext();)
-                        {
-                            final PGPPublicKey publicKey = (PGPPublicKey) it2.next();
-                            masterKey = enlistPublicKey(pgpKeyFingerprint2pgpKey, pgpKeyId2pgpKey,
-                                    pgpKeyId2masterKey, masterKey, keyRing, publicKey);
-                        }
+                        final PGPSecretKey secretKey = (PGPSecretKey) it3.next();
+                        final PgpKeyId pgpKeyId = new PgpKeyId(secretKey.getKeyID());
+                        final PgpKey pgpKey = pgpKeyId2pgpKey.get(pgpKeyId);
+                        if (pgpKey == null)
+                            throw new IllegalStateException(
+                                    "Secret key does not have corresponding public key in secret key ring! pgpKeyId="
+                                            + pgpKeyId);
 
-                        for (final Iterator<?> it3 = keyRing.getSecretKeys(); it3.hasNext();)
-                        {
-                            final PGPSecretKey secretKey = (PGPSecretKey) it3.next();
-                            final PgpKeyId pgpKeyId = new PgpKeyId(secretKey.getKeyID());
-                            final PgpKey pgpKey = pgpKeyId2pgpKey.get(pgpKeyId);
-                            if (pgpKey == null)
-                                throw new IllegalStateException(
-                                        "Secret key does not have corresponding public key in secret key ring! pgpKeyId="
-                                                + pgpKeyId);
-
-                            pgpKey.setSecretKey(secretKey);
-                            logger.debug("load: read secretKey with pgpKeyId={}", pgpKeyId);
-                        }
+                        pgpKey.setSecretKey(secretKey);
+                        logger.debug("load: read secretKey with pgpKeyId={}", pgpKeyId);
                     }
                 }
 
-                final File pubringFile = getPubringFile();
+                final PgpFile pubringFile = getPubringFile();
                 logger.debug("load: pubringFile='{}'", pubringFile);
-                pubringFileLastModified = pubringFile.lastModified();
-                if (pubringFile.isFile())
+                pubringFileLastModified = pubringFile.getLastModified();
+                final PGPPublicKeyRingCollection pgpPublicKeyRingCollection;
+                try (InputStream in = new BufferedInputStream(pubringFile.createInputStream());)
                 {
-                    final PGPPublicKeyRingCollection pgpPublicKeyRingCollection;
-                    try (InputStream in = new BufferedInputStream(new FileInputStream(pubringFile));)
-                    {
-                        pgpPublicKeyRingCollection = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(in),
-                                new BcKeyFingerprintCalculator());
-                    }
+                    pgpPublicKeyRingCollection = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(in),
+                            new BcKeyFingerprintCalculator());
+                }
 
-                    for (final Iterator<?> it1 = pgpPublicKeyRingCollection.getKeyRings(); it1.hasNext();)
+                for (final Iterator<?> it1 = pgpPublicKeyRingCollection.getKeyRings(); it1.hasNext();)
+                {
+                    final PGPPublicKeyRing keyRing = (PGPPublicKeyRing) it1.next();
+                    PgpKey masterKey = null;
+                    for (final Iterator<?> it2 = keyRing.getPublicKeys(); it2.hasNext();)
                     {
-                        final PGPPublicKeyRing keyRing = (PGPPublicKeyRing) it1.next();
-                        PgpKey masterKey = null;
-                        for (final Iterator<?> it2 = keyRing.getPublicKeys(); it2.hasNext();)
-                        {
-                            final PGPPublicKey publicKey = (PGPPublicKey) it2.next();
-                            masterKey = enlistPublicKey(pgpKeyFingerprint2pgpKey, pgpKeyId2pgpKey,
-                                    pgpKeyId2masterKey, masterKey, keyRing, publicKey);
-                        }
+                        final PGPPublicKey publicKey = (PGPPublicKey) it2.next();
+                        masterKey = enlistPublicKey(pgpKeyFingerprint2pgpKey, pgpKeyId2pgpKey,
+                                pgpKeyId2masterKey, masterKey, keyRing, publicKey);
                     }
                 }
             } catch (IOException | PGPException x)
@@ -333,7 +325,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
             final PgpKeyFingerprint signingPgpKeyFingerprint)
     {
         synchronized (mutex) {
-            assertNotNull("signingPgpKeyFingerprint", signingPgpKeyFingerprint);
+            assertNotNull(signingPgpKeyFingerprint, "signingPgpKeyFingerprint");
             final PgpKey signingPgpKey = getPgpKey(signingPgpKeyFingerprint);
             if (signingPgpKey == null)
                 return Collections.emptySet();
@@ -418,7 +410,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public List<PGPSignature> getSignatures(final PgpUserId pgpUserId)
     {
         synchronized (mutex) {
-            assertNotNull("pgpUserId", pgpUserId);
+            assertNotNull(pgpUserId, "pgpUserId");
             final PGPPublicKey publicKey = pgpUserId.getPgpKey().getPublicKey();
 
             final IdentityHashMap<PGPSignature, PGPSignature> pgpSignatures = new IdentityHashMap<>();
@@ -483,7 +475,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     @Override
     public boolean isCertification(final PGPSignature pgpSignature)
     {
-        assertNotNull("pgpSignature", pgpSignature);
+        assertNotNull(pgpSignature, "pgpSignature");
         return isCertification(pgpSignature.getSignatureType());
     }
 

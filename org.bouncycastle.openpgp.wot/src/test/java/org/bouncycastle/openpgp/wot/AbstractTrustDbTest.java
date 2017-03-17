@@ -1,13 +1,12 @@
 package org.bouncycastle.openpgp.wot;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,9 +76,9 @@ public abstract class AbstractTrustDbTest {
 	protected File tempDir;
 	protected File gnupgHomeDir;
 
-	protected File pubringFile;
-	protected File secringFile;
-	protected File trustdbFile;
+	protected PgpFile pubringFile;
+	protected PgpFile secringFile;
+	protected PgpFile trustdbFile;
 
 	protected PgpKeyRegistry pgpKeyRegistry;
 
@@ -90,9 +89,12 @@ public abstract class AbstractTrustDbTest {
 		tempFile.delete();
 		initGnupgHomeDir();
 
-		pubringFile = new File(gnupgHomeDir, "pubring.gpg");
-		secringFile = new File(gnupgHomeDir, "secring.gpg");
-		trustdbFile = new File(gnupgHomeDir, "trustdb.gpg");
+		pubringFile = new IoFile(new File(gnupgHomeDir, "pubring.gpg"));
+		secringFile = new IoFile(new File(gnupgHomeDir, "secring.gpg"));
+		trustdbFile = new IoFile(new File(gnupgHomeDir, "trustdb.gpg"));
+
+		assertThat(pubringFile.getPgpId()).isSameAs(secringFile.getPgpId());
+		assertThat(pubringFile.getPgpId()).isSameAs(trustdbFile.getPgpId());
 
 		pgpKeyRegistry = new PgpKeyRegistryImpl(pubringFile, secringFile);
 	}
@@ -105,12 +107,12 @@ public abstract class AbstractTrustDbTest {
 		}
 	}
 
-	protected void initGnupgHomeDir() {
+	protected void initGnupgHomeDir() throws Exception {
 		gnupgHomeDir = new File(tempDir, "gnupg_" + Long.toHexString(System.currentTimeMillis()) + '_' + Integer.toHexString(Math.abs(secureRandom.nextInt())));
 		gnupgHomeDir.mkdir();
 	}
 
-	protected void deleteGnupgHomeDir() {
+	protected void deleteGnupgHomeDir() throws Exception {
 		if (SKIP_CLEANUP)
 			logger.warn("SKIP_CLEANUP is true => *NOT* deleting directory: {}", gnupgHomeDir);
 		else
@@ -157,7 +159,7 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	private static void deleteRecursively(File fileOrDir) {
-		assertNotNull("fileOrDir", fileOrDir);
+		assertNotNull(fileOrDir, "fileOrDir");
 		fileOrDir.delete(); // first try to delete - if this is a symlink, this already succeeds
 
 		File[] children = fileOrDir.listFiles();
@@ -170,38 +172,32 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	protected PGPSecretKeyRingCollection readSecretKeyRingCollection() throws IOException, PGPException {
-		if (!secringFile.exists())
-			secringFile.createNewFile();
-
-		try (InputStream in = new BufferedInputStream(new FileInputStream(secringFile));) {
+		try (InputStream in = new BufferedInputStream(secringFile.createInputStream());) {
 			return new PGPSecretKeyRingCollection(in, new BcKeyFingerprintCalculator());
 		}
 	}
 
 	protected void writeSecretKeyRingCollection(PGPSecretKeyRingCollection collection) throws IOException, PGPException {
-		try (OutputStream out = new BufferedOutputStream(new FileOutputStream(secringFile));) {
+		try (OutputStream out = new BufferedOutputStream(secringFile.createOutputStream());) {
 			collection.encode(out);
 		}
 	}
 
 	protected PGPPublicKeyRingCollection readPublicKeyRingCollection() throws IOException, PGPException {
-		if (!pubringFile.exists())
-			pubringFile.createNewFile();
-
-		try (InputStream in = new BufferedInputStream(new FileInputStream(pubringFile));) {
+		try (InputStream in = new BufferedInputStream(pubringFile.createInputStream());) {
 			return new PGPPublicKeyRingCollection(in, new BcKeyFingerprintCalculator());
 		}
 	}
 
 	protected void writePublicKeyRingCollection(PGPPublicKeyRingCollection collection) throws IOException, PGPException {
-		try (OutputStream out = new BufferedOutputStream(new FileOutputStream(pubringFile));) {
+		try (OutputStream out = new BufferedOutputStream(pubringFile.createOutputStream());) {
 			collection.encode(out);
 		}
 	}
 
 	public PgpKey signPublicKey(PgpKey signingKey, int certificationType, PgpKey signedKey) throws IOException, PGPException {
-		assertNotNull("signingKey", signingKey);
-		assertNotNull("signedKey", signedKey);
+		assertNotNull(signingKey, "signingKey");
+		assertNotNull(signedKey, "signedKey");
 
 		signedKey = pgpKeyRegistry.getPgpKey(signedKey.getPgpKeyId()); // maybe the given signedKey is stale!
 
@@ -217,7 +213,7 @@ public abstract class AbstractTrustDbTest {
 //		final int masterKeyAlgorithm = PublicKeyAlgorithmTags.RSA_SIGN;
 		final int masterKeyAlgorithm = signingKey.getPublicKey().getAlgorithm();
 
-		PGPSecretKey secretKey = assertNotNull("signingKey.secretKey", signingKey.getSecretKey());
+		PGPSecretKey secretKey = assertNotNull(signingKey.getSecretKey(), "signingKey.secretKey");
 		PGPPrivateKey privateKey = extractPrivateKey(secretKey, passphrase);
 
 		final BcPGPContentSignerBuilder signerBuilder = new BcPGPContentSignerBuilder(masterKeyAlgorithm, HashAlgorithmTags.SHA512);
@@ -261,7 +257,7 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	public PgpKey createPgpKey(final String userId) throws NoSuchAlgorithmException, IOException, PGPException {
-		assertNotNull("userId", userId);
+		assertNotNull(userId, "userId");
 
 		// null causes an exception - empty is possible, though
 		char[] passphrase = new char[0];
@@ -302,8 +298,8 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	private Pair<PGPPublicKeyRing, PGPSecretKeyRing> createPGPSecretKeyRing(final String userId, final char[] passphrase) throws PGPException, NoSuchAlgorithmException {
-		assertNotNull("userId", userId);
-		assertNotNull("passphrase", passphrase);
+		assertNotNull(userId, "userId");
+		assertNotNull(passphrase, "passphrase");
 
 		logger.info("createPGPSecretKeyRing: Creating PGP key: userId='{}'", userId);
 

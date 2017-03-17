@@ -18,7 +18,7 @@ public class Util
 
     public static void longToBytes(final long value, final byte[] bytes, final int index)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length - index < 8)
             throw new IllegalArgumentException("bytes.length - index < 8");
 
@@ -28,7 +28,7 @@ public class Util
 
     public static long bytesToLong(final byte[] bytes)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length != 8)
             throw new IllegalArgumentException("bytes.length != 8");
 
@@ -37,7 +37,7 @@ public class Util
 
     public static long bytesToLong(final byte[] bytes, final int index)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length - index < 8)
             throw new IllegalArgumentException("bytes.length - index < 8");
 
@@ -57,7 +57,7 @@ public class Util
 
     public static void intToBytes(final int value, final byte[] bytes, final int index)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length - index < 4)
             throw new IllegalArgumentException("bytes.length - index < 4");
 
@@ -67,7 +67,7 @@ public class Util
 
     public static int bytesToInt(final byte[] bytes)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length != 4)
             throw new IllegalArgumentException("bytes.length != 4");
 
@@ -76,7 +76,7 @@ public class Util
 
     public static int bytesToInt(final byte[] bytes, final int index)
     {
-        assertNotNull("bytes", bytes);
+        assertNotNull(bytes, "bytes");
         if (bytes.length - index < 4)
             throw new IllegalArgumentException("bytes.length - index < 4");
 
@@ -145,7 +145,7 @@ public class Util
         return res;
     }
 
-    public static final <T> T assertNotNull(final String name, final T object)
+    public static final <T> T assertNotNull(final T object, final String name)
     {
         if (object == null)
             throw new IllegalArgumentException(String.format("%s == null", name));

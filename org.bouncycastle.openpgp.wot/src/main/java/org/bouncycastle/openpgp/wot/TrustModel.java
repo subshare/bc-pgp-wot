@@ -23,7 +23,7 @@ public enum TrustModel
     private TrustModel(int numericId, String stringId)
     {
         this.numericId = numericId;
-        this.stringId = assertNotNull("stringId", stringId);
+        this.stringId = assertNotNull(stringId, "stringId");
     }
 
     public int getNumericId()

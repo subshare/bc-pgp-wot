@@ -23,7 +23,7 @@ public class PgpKeyId implements Comparable<PgpKeyId>, Serializable
 
     public PgpKeyId(final String pgpKeyIdString)
     {
-        this(bytesToLong(decodeHexStr(assertNotNull("pgpKeyIdString", pgpKeyIdString))));
+        this(bytesToLong(decodeHexStr(assertNotNull(pgpKeyIdString, "pgpKeyIdString"))));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class PgpKeyId implements Comparable<PgpKeyId>, Serializable
     @Override
     public int compareTo(PgpKeyId other)
     {
-        assertNotNull("other", other);
+        assertNotNull(other, "other");
         // Same semantics as for normal numbers.
         return (this.pgpKeyId < other.pgpKeyId ? -1 :
                 (this.pgpKeyId > other.pgpKeyId ? 1 : 0));

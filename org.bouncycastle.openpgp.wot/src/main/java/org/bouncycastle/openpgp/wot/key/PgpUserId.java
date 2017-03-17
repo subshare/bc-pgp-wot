@@ -16,16 +16,16 @@ public class PgpUserId
 
     public PgpUserId(final PgpKey pgpKey, final String userId)
     {
-        this.pgpKey = assertNotNull("pgpKey", pgpKey);
-        this.userId = assertNotNull("userId", userId);
+        this.pgpKey = assertNotNull(pgpKey, "pgpKey");
+        this.userId = assertNotNull(userId, "userId");
         this.userAttribute = null;
     }
 
     public PgpUserId(final PgpKey pgpKey, final PGPUserAttributeSubpacketVector userAttribute)
     {
-        this.pgpKey = assertNotNull("pgpKey", pgpKey);
+        this.pgpKey = assertNotNull(pgpKey, "pgpKey");
         this.userId = null;
-        this.userAttribute = assertNotNull("userAttribute", userAttribute);
+        this.userAttribute = assertNotNull(userAttribute, "userAttribute");
     }
 
     public PgpKey getPgpKey()

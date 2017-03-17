@@ -21,14 +21,14 @@ public class PgpKeyFingerprint implements Comparable<PgpKeyFingerprint>, Seriali
 
     public PgpKeyFingerprint(final byte[] fingerprint)
     {
-        assertNotNull("fingerprint", fingerprint);
+        assertNotNull(fingerprint, "fingerprint");
         // In order to guarantee that this instance is immutable, we must copy the input.
         this.fingerprint = copyOf(fingerprint, fingerprint.length);
     }
 
     public PgpKeyFingerprint(final String fingerprint)
     {
-        assertNotNull("fingerprint", fingerprint);
+        assertNotNull(fingerprint, "fingerprint");
         this.fingerprint = decodeHexStr(fingerprint);
     }
 

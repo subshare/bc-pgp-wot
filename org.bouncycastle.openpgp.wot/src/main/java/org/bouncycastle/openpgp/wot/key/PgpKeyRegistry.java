@@ -1,11 +1,11 @@
 package org.bouncycastle.openpgp.wot.key;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import org.bouncycastle.openpgp.PGPSignature;
+import org.bouncycastle.openpgp.wot.PgpFile;
 
 /**
  * Registry providing fast access to the keys of a public and a secret key ring collection.
@@ -39,7 +39,7 @@ public interface PgpKeyRegistry
          *            ). Must not be <code>null</code>. The file does not need to exist, though.
          * @return a new instance of a {@code PgpKeyRegistry}. Never <code>null</code>.
          */
-        public static PgpKeyRegistry createInstance(final File pubringFile, final File secringFile) {
+        public static PgpKeyRegistry createInstance(final PgpFile pubringFile, final PgpFile secringFile) {
             return new PgpKeyRegistryImpl(pubringFile, secringFile);
         }
     }
@@ -49,14 +49,14 @@ public interface PgpKeyRegistry
      *
      * @return the file containing the public keys. Never <code>null</code>.
      */
-    File getPubringFile();
+    PgpFile getPubringFile();
 
     /**
      * Gets the file containing the secret keys - usually named {@code secring.gpg} (located in {@code ~/.gnupg/}).
      *
      * @return the file containing the secret keys. Never <code>null</code>.
      */
-    File getSecringFile();
+    PgpFile getSecringFile();
 
     /**
      * Gets the key with the given ID. If no such key exists, an {@link IllegalArgumentException} is thrown.

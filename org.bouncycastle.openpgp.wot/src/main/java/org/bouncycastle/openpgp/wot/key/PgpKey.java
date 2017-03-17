@@ -44,8 +44,8 @@ public class PgpKey
 
     public PgpKey(final PgpKeyId pgpKeyId, final PgpKeyFingerprint pgpKeyFingerprint)
     {
-        this.pgpKeyId = assertNotNull("pgpKeyId", pgpKeyId);
-        this.pgpKeyFingerprint = assertNotNull("pgpKeyFingerprint", pgpKeyFingerprint);
+        this.pgpKeyId = assertNotNull(pgpKeyId, "pgpKeyId");
+        this.pgpKeyFingerprint = assertNotNull(pgpKeyFingerprint, "pgpKeyFingerprint");
     }
 
     public PgpKeyId getPgpKeyId()

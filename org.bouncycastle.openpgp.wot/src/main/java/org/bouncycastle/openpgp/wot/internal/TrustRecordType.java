@@ -25,7 +25,7 @@ enum TrustRecordType
     private TrustRecordType(short id, Class<? extends TrustRecord> trustRecordClass)
     {
         this.id = id;
-        this.trustRecordClass = assertNotNull("trustRecordClass", trustRecordClass);
+        this.trustRecordClass = assertNotNull(trustRecordClass, "trustRecordClass");
     }
 
     public short getId()
@@ -49,7 +49,7 @@ enum TrustRecordType
 
     public static TrustRecordType fromClass(Class<? extends TrustRecord> trustRecordClass)
     {
-        assertNotNull("trustRecordClass", trustRecordClass);
+        assertNotNull(trustRecordClass, "trustRecordClass");
         TrustRecordType type = getClass2Type().get(trustRecordClass);
         if (type == null)
             throw new IllegalArgumentException("trustRecordClass unknown: " + trustRecordClass.getName());
