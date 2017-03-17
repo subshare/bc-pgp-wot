@@ -1,6 +1,5 @@
 package org.bouncycastle.openpgp.wot;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,7 +30,8 @@ public interface PgpFile {
 	/**
 	 * Gets the timestamp when the content of this {@code PgpFile} was last modified.
 	 * <p>
-	 * When using a {@link File}, this should be equivalent to {@link File#lastModified()}.
+	 * When using a {@link java.io.File File}, this should be equivalent to
+	 * {@link java.io.File#lastModified() lastModified()}.
 	 * @return the timestamp when the content of this {@code PgpFile} was last modified.
 	 */
 	long getLastModified();

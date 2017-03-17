@@ -2,7 +2,6 @@ package org.bouncycastle.openpgp.wot.internal;
 
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,13 +57,13 @@ public class TrustDbImpl implements TrustDb, TrustConst
      * <b>Important:</b> You must {@linkplain #close() close} this instance!
      * <p>
      * <b>Important:</b> It is highly recommended not to invoke this constructor directly! Use
-     * {@link TrustDb.Helper#createInstance(File, PgpKeyRegistry)} instead!
+     * {@link TrustDb.Helper#createInstance(PgpFile, PgpKeyRegistry)} instead!
      *
      * @param file
      *            the trust-database-file ({@code trustdb.gpg}). Must not be <code>null</code>.
      * @param pgpKeyRegistry
      *            the key-registry. Must not be <code>null</code>.
-     * @see TrustDb.Helper#createInstance(File, PgpKeyRegistry)
+     * @see TrustDb.Helper#createInstance(PgpFile, PgpKeyRegistry)
      */
     public TrustDbImpl(final PgpFile file, final PgpKeyRegistry pgpKeyRegistry)
     {
