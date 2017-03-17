@@ -9,7 +9,7 @@ def mavenDeployerRepoUrlSysProp = System.getProperty("mavenDeployerRepoUrl");
 if (mavenDeployerRepoUrlSysProp != null && ! mavenDeployerRepoUrlSysProp.isEmpty())
 	project.ext.mavenDeployerRepoUrl = mavenDeployerRepoUrlSysProp;
 
-group = 'org.subshare'
+group = 'org.bouncycastle'
 version = '1.52.1'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
