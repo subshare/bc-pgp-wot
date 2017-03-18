@@ -2,10 +2,10 @@ apply plugin: 'java'
 apply plugin: 'osgi'
 apply plugin: 'maven'
 
-project.ext.bouncycastleVersion = '1.52'
+project.ext.bouncycastleVersion = '1.56'
 
 group = 'org.bouncycastle'
-version = '1.52.2'
+version = '1.56.0'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
