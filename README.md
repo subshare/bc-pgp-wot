@@ -9,7 +9,7 @@ Gradle
 Add this to your `build.gradle` to use this library:
 
 	dependencies {
-		compile group: 'org.bouncycastle', name: 'org.bouncycastle.openpgp.wot' , version: '1.52.2'
+		compile group: 'org.bouncycastle', name: 'org.bouncycastle.openpgp.wot' , version: '1.56.0'
 	}
 
 	repositories {
@@ -29,7 +29,7 @@ Add this to your `pom.xml` to use this library:
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>org.bouncycastle.openpgp.wot</artifactId>
-			<version>1.52.2</version>
+			<version>1.56.0</version>
 		</dependency>
 	</dependencies>
 
