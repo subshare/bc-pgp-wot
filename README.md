@@ -7,29 +7,42 @@ It currently contains one single project/library: `org.bouncycastle.openpgp.wot`
 
 Its feature set is in short **full compatibility with GnuPG's trust database** -- in detail, this means:
 
-1) Read GnuPG's `trustdb.gpg` (usually located in `~/.gnupg/`).
-	a) Read the (previously calculated) validity of a key.
-	b) Read key properties like "disabled" or "owner-trust".
+	1) Read GnuPG's `trustdb.gpg` (usually located in `~/.gnupg/`).
 
-2) Write GnuPG's `trustdb.gpg`.
-	a) Set a key's "owner-trust".
-	b) Set a key's "disabled" flag.
-	c) Recalculate the validity of all public-keys.
-	d) Create a new, fresh `trustdb.gpg`.
+		a) Read the (previously calculated) validity of a key.
 
-3) It contains a key registry used to efficiently look up keys. This is needed by the validity-calculation, but may be useful for other people, too.
-	a) Look up a key by its ID.
-	b) Look up a key by its fingerprint.
-	c) Look up all keys that have been signed (a.k.a. certified) by a certain key (identified by ID or fingerprint).
+		b) Read key properties like "disabled" or "owner-trust".
 
-4) File abstraction: Both the trust-db and the key-registry can read/write data from/to any location. There's
-already an implementation for `java.io.File` (for reading/writing GnuPG's data in `~/.gnupg/`), but people who
-want to store key-rings and trust in a database might easily implement other persistence.
+	2) Write GnuPG's `trustdb.gpg`.
+
+		a) Set a key's "owner-trust".
+
+		b) Set a key's "disabled" flag.
+
+		c) Recalculate the validity of all public-keys.
+
+		d) Create a new, fresh `trustdb.gpg`.
+
+	3) It contains a key registry used to efficiently look up keys. This is needed by the
+	validity-calculation, but may be useful for other people, too.
+
+		a) Look up a key by its ID.
+
+		b) Look up a key by its fingerprint.
+
+		c) Look up all keys that have been signed (a.k.a. certified) by a certain key (identified by ID or fingerprint).
+
+	4) File abstraction: Both the trust-db and the key-registry can read/write data from/to any location. There's
+	already an implementation for `java.io.File` (for reading/writing GnuPG's data in `~/.gnupg/`), but people who
+	want to store key-rings and trust in a database might easily implement other persistence.
 
 The following features are still missing:
-1) Support trust models other than 'PGP'.
-2) Remove entries from the trustdb.gpg - e.g. when a key was removed from the key ring(s).
-3) Read configuration settings like "how many marginals are needed" from GnuPG (or any other?) configuration file.
+
+	1) Support trust models other than 'PGP'.
+
+	2) Remove entries from the trustdb.gpg - e.g. when a key was removed from the key ring(s).
+
+	3) Read configuration settings like "how many marginals are needed" from GnuPG (or any other?) configuration file.
 
 I currently do *not* plan to implement these missing features, because they are IMHO not important at all. But
 contributions from other developers are highly appreciated.
