@@ -750,7 +750,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
         final List<PgpKey> result = new ArrayList<>();
         final Set<PgpKeyFingerprint> signedPgpKeyFingerprints = new HashSet<>();
         for (PgpKeyFingerprint signingPgpKeyFingerprint : klist)
-            signedPgpKeyFingerprints.addAll(pgpKeyRegistry.getPgpKeyFingerprintsSignedBy(signingPgpKeyFingerprint));
+            signedPgpKeyFingerprints.addAll(pgpKeyRegistry.getPgpKeyFingerprintsCertifiedBy(signingPgpKeyFingerprint));
 
         signedPgpKeyFingerprints.removeAll(fullTrust); // no need to validate those that are already fully trusted
 
@@ -805,7 +805,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
             if (revoked)
                 continue;
 
-            for (PGPSignature certification : pgpKeyRegistry.getSignatures(pgpUserId))
+            for (PGPSignature certification : pgpKeyRegistry.getCertifications(pgpUserId))
             {
                 // It seems, the PGP trust model does not care about the certification level :-(
                 // Any of the 3 DEFAULT, CASUAL, POSITIVE is as fine as the other -

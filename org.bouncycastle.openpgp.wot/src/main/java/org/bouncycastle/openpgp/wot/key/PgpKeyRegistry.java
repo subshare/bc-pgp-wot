@@ -136,14 +136,14 @@ public interface PgpKeyRegistry
      * Usually, the fingerprint specified should identify a master-key and usually only master-key-fingerprints are
      * returned by this method.
      *
-     * @param signingPgpKeyFingerprint
+     * @param certifyingPgpKeyFingerprint
      *            the fingerprint of the key having signed all those keys that we're interested in. Must not be
      *            <code>null</code>.
      * @return the fingerprints of all those keys which have been signed (certified) by the key identified by
      *         {@code signingPgpKeyFingerprint}. Never <code>null</code>, but maybe empty.
      */
-    Set<PgpKeyFingerprint> getPgpKeyFingerprintsSignedBy(
-            PgpKeyFingerprint signingPgpKeyFingerprint);
+    Set<PgpKeyFingerprint> getPgpKeyFingerprintsCertifiedBy(
+            PgpKeyFingerprint certifyingPgpKeyFingerprint);
 
     /**
      * Gets all those keys' IDs whose keys were signed (certified) by the key identified by the given ID.
@@ -151,13 +151,13 @@ public interface PgpKeyRegistry
      * Usually, the ID specified should identify a master-key and usually only master-key-IDs are returned by this
      * method.
      *
-     * @param signingPgpKeyId
+     * @param certifyingPgpKeyId
      *            the ID of the key having signed all those keys that we're interested in. Must not be <code>null</code>
      *            .
      * @return the IDs of all those keys which have been signed (certified) by the key identified by
      *         {@code signingPgpKeyId}. Never <code>null</code>, but maybe empty.
      */
-    Set<PgpKeyId> getPgpKeyIdsSignedBy(PgpKeyId signingPgpKeyId);
+    Set<PgpKeyId> getPgpKeyIdsCertifiedBy(PgpKeyId certifyingPgpKeyId);
 
     /**
      * Gets the signatures certifying the authenticity of the given user-ID.
@@ -167,7 +167,7 @@ public interface PgpKeyRegistry
      * @return the certifications authenticating the given {@code pgpUserId}. Never <code>null</code>. Because every
      *         user-ID is normally at least signed by the owning key, it is normally never empty, too.
      */
-    List<PGPSignature> getSignatures(PgpUserId pgpUserId);
+    List<PGPSignature> getCertifications(PgpUserId pgpUserId);
 
     /**
      * Determines whether the given signature is a certification.

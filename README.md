@@ -22,7 +22,7 @@ Its feature set is in short **full compatibility with GnuPG's trust database**. 
 
 	d) Create a new, fresh `trustdb.gpg`.
 
-3) It contains a key registry used to efficiently look up keys. This is needed by the
+3) It contains a key registry and related data structure used to *efficiently* look up keys and their relations. This is needed by the
 validity-calculation, but may be useful for other people, too.
 
 	a) Look up a key by its ID.
@@ -30,6 +30,12 @@ validity-calculation, but may be useful for other people, too.
 	b) Look up a key by its fingerprint.
 
 	c) Look up all keys that have been signed (a.k.a. certified) by a certain key (identified by ID or fingerprint).
+
+	d) Get sub-keys of a master-key.
+
+	e) Get master-key of a sub-key.
+
+	f) Get certifications of a certain user-ID.
 
 4) File abstraction: Both the trust-db and the key-registry can read/write data from/to any location. There's
 already an implementation for `java.io.File` (for reading/writing GnuPG's data in `~/.gnupg/`), but people who
@@ -55,7 +61,7 @@ Gradle
 Add this to your `build.gradle` to use this library:
 
 	dependencies {
-		compile group: 'org.bouncycastle', name: 'org.bouncycastle.openpgp.wot' , version: '1.56.0'
+		compile group: 'org.bouncycastle', name: 'org.bouncycastle.openpgp.wot' , version: '1.56.1'
 	}
 
 	repositories {
@@ -79,7 +85,7 @@ Add this to your `pom.xml` to use this library:
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>org.bouncycastle.openpgp.wot</artifactId>
-			<version>1.56.0</version>
+			<version>1.56.1</version>
 		</dependency>
 	</dependencies>
 

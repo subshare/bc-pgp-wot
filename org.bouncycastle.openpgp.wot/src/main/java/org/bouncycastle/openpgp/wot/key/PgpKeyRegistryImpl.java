@@ -49,7 +49,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     private Map<PgpKeyId, PgpKey> pgpKeyId2pgpKey; // all keys
     private Map<PgpKeyId, PgpKey> pgpKeyId2masterKey; // only master-keys
 
-    private Map<PgpKeyId, Set<PgpKeyId>> signingKeyId2signedKeyIds;
+    private Map<PgpKeyId, Set<PgpKeyId>> certifyingKeyId2certifiedKeyIds;
 
     /**
      * Creates an instance of {@code PgpKeyRegistryImpl} with the given public and secret key ring collection files.
@@ -251,7 +251,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
             this.pgpKeyFingerprint2pgpKey = Collections.unmodifiableMap(pgpKeyFingerprint2pgpKey);
             this.pgpKeyId2pgpKey = Collections.unmodifiableMap(pgpKeyId2pgpKey);
             this.pgpKeyId2masterKey = Collections.unmodifiableMap(pgpKeyId2masterKey);
-            this.signingKeyId2signedKeyIds = null;
+            this.certifyingKeyId2certifiedKeyIds = null;
 
             assignSubKeys();
         }
@@ -321,16 +321,16 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     }
 
     @Override
-    public Set<PgpKeyFingerprint> getPgpKeyFingerprintsSignedBy(
-            final PgpKeyFingerprint signingPgpKeyFingerprint)
+    public Set<PgpKeyFingerprint> getPgpKeyFingerprintsCertifiedBy(
+            final PgpKeyFingerprint certifyingPgpKeyFingerprint)
     {
         synchronized (mutex) {
-            assertNotNull(signingPgpKeyFingerprint, "signingPgpKeyFingerprint");
-            final PgpKey signingPgpKey = getPgpKey(signingPgpKeyFingerprint);
+            assertNotNull(certifyingPgpKeyFingerprint, "signingPgpKeyFingerprint");
+            final PgpKey signingPgpKey = getPgpKey(certifyingPgpKeyFingerprint);
             if (signingPgpKey == null)
                 return Collections.emptySet();
 
-            final Set<PgpKeyId> pgpKeyIds = getSigningKeyId2signedKeyIds().get(signingPgpKey.getPgpKeyId());
+            final Set<PgpKeyId> pgpKeyIds = getCertifyingKeyId2certifiedKeyIds().get(signingPgpKey.getPgpKeyId());
             if (pgpKeyIds == null)
                 return Collections.emptySet();
 
@@ -345,10 +345,10 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     }
 
     @Override
-    public Set<PgpKeyId> getPgpKeyIdsSignedBy(final PgpKeyId signingPgpKeyId)
+    public Set<PgpKeyId> getPgpKeyIdsCertifiedBy(final PgpKeyId certifyingPgpKeyId)
     {
         synchronized (mutex) {
-            final Set<PgpKeyId> pgpKeyIds = getSigningKeyId2signedKeyIds().get(signingPgpKeyId);
+            final Set<PgpKeyId> pgpKeyIds = getCertifyingKeyId2certifiedKeyIds().get(certifyingPgpKeyId);
             if (pgpKeyIds == null)
                 return Collections.emptySet();
 
@@ -356,11 +356,11 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
         }
     }
 
-    protected Map<PgpKeyId, Set<PgpKeyId>> getSigningKeyId2signedKeyIds()
+    protected Map<PgpKeyId, Set<PgpKeyId>> getCertifyingKeyId2certifiedKeyIds()
     {
         synchronized (mutex) {
             loadIfNeeded();
-            if (signingKeyId2signedKeyIds == null)
+            if (certifyingKeyId2certifiedKeyIds == null)
             {
                 final Map<PgpKeyId, Set<PgpKeyId>> m = new HashMap<>();
                 for (final PgpKey pgpKey : pgpKeyId2pgpKey.values())
@@ -400,14 +400,14 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
                             enlistInSigningKey2signedKeyIds(m, pgpKey, pgpSignature);
                     }
                 }
-                signingKeyId2signedKeyIds = Collections.unmodifiableMap(m);
+                certifyingKeyId2certifiedKeyIds = Collections.unmodifiableMap(m);
             }
-            return signingKeyId2signedKeyIds;
+            return certifyingKeyId2certifiedKeyIds;
         }
     }
 
     @Override
-    public List<PGPSignature> getSignatures(final PgpUserId pgpUserId)
+    public List<PGPSignature> getCertifications(final PgpUserId pgpUserId)
     {
         synchronized (mutex) {
             assertNotNull(pgpUserId, "pgpUserId");
@@ -418,7 +418,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
             final List<PGPSignature> result = new ArrayList<>();
             if (pgpUserId.getUserId() != null)
             {
-                for (@SuppressWarnings("unchecked") final Iterator<?> it = nullToEmpty(publicKey.getSignaturesForID(pgpUserId.getUserId())); it.hasNext();)
+                for (final Iterator<?> it = nullToEmpty(publicKey.getSignaturesForID(pgpUserId.getUserId())); it.hasNext();)
                 {
                     final PGPSignature pgpSignature = (PGPSignature) it.next();
                     if (!pgpSignatures.containsKey(pgpSignature) && isCertification(pgpSignature))
