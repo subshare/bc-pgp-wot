@@ -1,11 +1,10 @@
-OpenPGP/GnuPG WOT (web of trust)
+OpenPGP/GnuPG web-of-trust (WOT)
 ===
 
-This repository is dedicated to the OpenPGP/GnuPG web-of-trust.
+This repository is dedicated to the OpenPGP/GnuPG web-of-trust. It currently contains one single
+project/library: `org.bouncycastle.openpgp.wot`
 
-It currently contains one single project/library: `org.bouncycastle.openpgp.wot`
-
-Its feature set is in short **full compatibility with GnuPG's trust database** -- in detail, this means:
+Its feature set is in short **full compatibility with GnuPG's trust database**. In detail, this means:
 
 1) Read GnuPG's `trustdb.gpg` (usually located in `~/.gnupg/`).
 
@@ -40,7 +39,7 @@ The following features are still missing:
 
 1) Support trust models other than 'PGP'.
 
-2) Remove entries from the trustdb.gpg - e.g. when a key was removed from the key ring(s).
+2) Remove entries from the `trustdb.gpg` - e.g. when a key was removed from the key ring(s).
 
 3) Read configuration settings like "how many marginals are needed" from GnuPG (or any other?) configuration file.
 
@@ -61,14 +60,15 @@ Add this to your `build.gradle` to use this library:
 
 	repositories {
 		maven {
-			url 'http://subshare.org/maven/snapshot'
+			url 'http://subshare.org/maven/release'
 		}
 		maven {
-			url 'http://subshare.org/maven/release'
+			url 'http://subshare.org/maven/snapshot'
 		}
 	}
 
-Of course, you only need the "release"-repository, if you do not want to include a "-SNAPSHOT"-version.
+Of course, you only need the "release"-repository and can omit the "snapshot"-repo, if you do *not* want
+to include a "-SNAPSHOT"-version.
 
 
 Maven
@@ -86,16 +86,6 @@ Add this to your `pom.xml` to use this library:
 	<repositories>
 		<repository>
 			<id>subshare</id>
-			<url>http://subshare.org/maven/snapshot</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>subshare</id>
 			<url>http://subshare.org/maven/release</url>
 			<releases>
 				<enabled>true</enabled>
@@ -104,7 +94,20 @@ Add this to your `pom.xml` to use this library:
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>subshare</id>
+			<url>http://subshare.org/maven/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
+
+Like already mentioned for Gradle above: You can omit the "snapshot" repository, if you do *not* want to
+include a "-SNAPSHOT"-version in your project.
 
 
 Jenkins + manual download
