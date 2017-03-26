@@ -66,10 +66,10 @@ Add this to your `build.gradle` to use this library:
 
 	repositories {
 		maven {
-			url 'http://subshare.org/maven/release'
+			url 'https://codewizards.co/maven/release'
 		}
 		maven {
-			url 'http://subshare.org/maven/snapshot'
+			url 'https://codewizards.co/maven/snapshot'
 		}
 	}
 
@@ -92,7 +92,7 @@ Add this to your `pom.xml` to use this library:
 	<repositories>
 		<repository>
 			<id>subshare</id>
-			<url>http://subshare.org/maven/release</url>
+			<url>https://codewizards.co/maven/release</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -102,7 +102,7 @@ Add this to your `pom.xml` to use this library:
 		</repository>
 		<repository>
 			<id>subshare</id>
-			<url>http://subshare.org/maven/snapshot</url>
+			<url>https://codewizards.co/maven/snapshot</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
