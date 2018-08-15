@@ -2,10 +2,12 @@ apply plugin: 'java'
 apply plugin: 'osgi'
 apply plugin: 'maven'
 
-project.ext.bouncycastleVersion = '1.60'
+//project.ext.bouncycastleVersion = '1.60'
+project.ext.bouncycastleVersion = '161b03'
 
 group = 'org.bouncycastle'
-version = '1.60.1-SNAPSHOT'
+version = '161b03.0-SNAPSHOT'
+//version = '1.60.1-SNAPSHOT'
 //version = '1.60.0'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
@@ -24,6 +26,10 @@ else
 
 repositories {
     jcenter()
+
+    maven {
+		url 'https://codewizards.co/maven/release'
+	}
 }
 
 dependencies {
