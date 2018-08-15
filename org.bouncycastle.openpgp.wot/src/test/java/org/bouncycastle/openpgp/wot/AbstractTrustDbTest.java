@@ -14,8 +14,10 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
@@ -246,9 +248,25 @@ public abstract class AbstractTrustDbTest {
 		PGPPublicKeyRingCollection publicKeyRingCollection = readPublicKeyRingCollection();
 		publicKeyRingCollection = PGPPublicKeyRingCollection.removePublicKeyRing(publicKeyRingCollection, signedKey.getPublicKeyRing());
 
-		PGPPublicKeyRing publicKeyRing = PGPPublicKeyRing.removePublicKey(signedKey.getPublicKeyRing(), signedKey.getPublicKey());
+		PGPPublicKeyRing publicKeyRing = signedKey.getPublicKeyRing();
+		List<PGPPublicKey> subKeys = new ArrayList<>(); // *1* must *first* remove sub-keys.
+		for (Iterator<PGPPublicKey> pkIt = signedKey.getPublicKeyRing().getPublicKeys(); pkIt.hasNext(); ) {
+			PGPPublicKey pk = pkIt.next();
+			if (signedKey.getSubKeyIds().contains(new PgpKeyId(pk.getKeyID()))) {
+				subKeys.add(pk);
+				publicKeyRing = PGPPublicKeyRing.removePublicKey(publicKeyRing, pk);
+			}
+		}
+		// *2* remove master-key
+		publicKeyRing = PGPPublicKeyRing.removePublicKey(publicKeyRing, signedKey.getPublicKey());
+
+		// *3* re-instert master-key
 		publicKeyRing = PGPPublicKeyRing.insertPublicKey(publicKeyRing, signedPublicKey);
 
+		// *4* re-insert sub-keys immediately following master-key.
+		for (PGPPublicKey subKey : subKeys) {
+			publicKeyRing = PGPPublicKeyRing.insertPublicKey(publicKeyRing, subKey);
+		}
 		publicKeyRingCollection = PGPPublicKeyRingCollection.addPublicKeyRing(publicKeyRingCollection, publicKeyRing);
 		writePublicKeyRingCollection(publicKeyRingCollection);
 
