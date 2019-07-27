@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot.key;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,8 +44,8 @@ public class PgpKey
 
     public PgpKey(final PgpKeyId pgpKeyId, final PgpKeyFingerprint pgpKeyFingerprint)
     {
-        this.pgpKeyId = assertNotNull(pgpKeyId, "pgpKeyId");
-        this.pgpKeyFingerprint = assertNotNull(pgpKeyFingerprint, "pgpKeyFingerprint");
+        this.pgpKeyId = requireNonNull(pgpKeyId, "pgpKeyId");
+        this.pgpKeyFingerprint = requireNonNull(pgpKeyFingerprint, "pgpKeyFingerprint");
     }
 
     public PgpKeyId getPgpKeyId()

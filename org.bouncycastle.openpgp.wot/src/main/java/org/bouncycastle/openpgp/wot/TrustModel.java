@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 /**
  * Trust-model specifying the policy and algorithm of trust/validity calculations.
@@ -23,7 +23,7 @@ public enum TrustModel
     private TrustModel(int numericId, String stringId)
     {
         this.numericId = numericId;
-        this.stringId = assertNotNull(stringId, "stringId");
+        this.stringId = requireNonNull(stringId, "stringId");
     }
 
     public int getNumericId()

@@ -1,5 +1,6 @@
 package org.bouncycastle.openpgp.wot.internal;
 
+import static java.util.Objects.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.EOFException;
@@ -60,8 +61,8 @@ class TrustDbIo implements AutoCloseable, TrustConst
      */
     public TrustDbIo(final PgpFile file, final Object mutex) throws TrustDbIoException
     {
-        this.file = assertNotNull(file, "file");
-        this.mutex = assertNotNull(mutex, "mutex");
+        this.file = requireNonNull(file, "file");
+        this.mutex = requireNonNull(mutex, "mutex");
         try {
         	this.raf = file.createRandomAccessFile();
         } catch (IOException e) {
@@ -95,10 +96,10 @@ class TrustDbIo implements AutoCloseable, TrustConst
     public void updateVersionRecord(final Date nextCheck) throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull(nextCheck, "nextCheck");
+            requireNonNull(nextCheck, "nextCheck");
 
             TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull(version, "version");
+            requireNonNull(version, "version");
 
             Config config = Config.getInstance();
 
@@ -138,7 +139,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
             if (trustHashRec == 0)
             {
                 TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-                assertNotNull(version, "version");
+                requireNonNull(version, "version");
 
                 trustHashRec = version.getTrustHashTbl();
                 if (trustHashRec == 0)
@@ -159,7 +160,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
     private void createHashTable(int type) throws TrustDbIoException
     {
         TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-        assertNotNull(version, "version");
+        requireNonNull(version, "version");
 
         flush(); // make sure, raf.length is correct.
 
@@ -203,13 +204,13 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
             // Look for Free records.
             final TrustRecord.Version version = getTrustRecord(0, TrustRecord.Version.class);
-            assertNotNull(version, "version");
+            requireNonNull(version, "version");
 
             if (version.getFirstFree() != 0)
             {
                 recordNum = version.getFirstFree();
                 TrustRecord.Free free = getTrustRecord(recordNum, TrustRecord.Free.class);
-                assertNotNull(free, "free");
+                requireNonNull(free, "free");
 
                 // Update dir record.
                 version.setFirstFree(free.getNext());
@@ -293,7 +294,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                 msb = key[level] & 0xff;
                 hashrec += msb / ITEMS_PER_HTBL_RECORD;
                 TrustRecord.HashTbl hashTable = getTrustRecord(hashrec, TrustRecord.HashTbl.class);
-                // assertNotNull("hashTable", hashTable);
+                // requireNonNull("hashTable", hashTable);
                 if (hashTable == null)
                     return null; // not found!
 
@@ -302,7 +303,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                     return null; // not found!
 
                 TrustRecord record = getTrustRecord(item);
-                assertNotNull(record, "record");
+                requireNonNull(record, "record");
 
                 if (record.getType() == TrustRecordType.HTBL)
                 {
@@ -332,7 +333,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         if (hashList.getNext() != 0)
                         {
                             hashList = getTrustRecord(hashList.getNext(), TrustRecord.HashLst.class);
-                            assertNotNull(hashList, "hashList");
+                            requireNonNull(hashList, "hashList");
                         }
                         else
                             return null;
@@ -351,7 +352,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
             throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull(expectedTrustRecordClass, "expectedTrustRecordClass");
+            requireNonNull(expectedTrustRecordClass, "expectedTrustRecordClass");
             final TrustRecordType expectedType = expectedTrustRecordClass ==
                     TrustRecord.class ? null : TrustRecordType.fromClass(expectedTrustRecordClass);
 
@@ -496,7 +497,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
     public void putTrustRecord(final TrustRecord trustRecord) throws TrustDbIoException
     {
         synchronized (mutex) {
-            assertNotNull(trustRecord, "trustRecord");
+            requireNonNull(trustRecord, "trustRecord");
 
             if (trustRecord.getRecordNum() < 0)
                 trustRecord.setRecordNum(newRecordNum());
@@ -680,7 +681,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                                 break; // key is not in the list
 
                             hashList = getTrustRecord(hashList.getNext(), TrustRecord.HashLst.class);
-                            assertNotNull(hashList, "hashList");
+                            requireNonNull(hashList, "hashList");
                         }
 
                         // The following line was added by me, Marco. I think the original GnuPG code missed this: We should
@@ -738,7 +739,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
                         putTrustRecord(hashList);
 
                         // Update the hashtable record.
-                        assertNotNull(lastHashTable, "lastHashTable").setItem(msb % ITEMS_PER_HTBL_RECORD,
+                        requireNonNull(lastHashTable, "lastHashTable").setItem(msb % ITEMS_PER_HTBL_RECORD,
                                 hashList.getRecordNum());
                         putTrustRecord(lastHashTable);
                         return;
@@ -757,7 +758,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
     private void putToCache(TrustRecord trustRecord)
     {
-        assertNotNull(trustRecord, "trustRecord");
+        requireNonNull(trustRecord, "trustRecord");
         final long recordNum = trustRecord.getRecordNum();
 
         if (cacheRecordNum2TrustRecord.containsKey(recordNum))

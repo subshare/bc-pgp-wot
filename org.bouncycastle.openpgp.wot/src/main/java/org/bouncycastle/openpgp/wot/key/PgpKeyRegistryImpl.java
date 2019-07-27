@@ -1,5 +1,6 @@
 package org.bouncycastle.openpgp.wot.key;
 
+import static java.util.Objects.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.BufferedInputStream;
@@ -63,8 +64,8 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
      */
     public PgpKeyRegistryImpl(PgpFile pubringFile, PgpFile secringFile)
     {
-        this.pubringFile = assertNotNull(pubringFile, "pubringFile");
-        this.secringFile = assertNotNull(secringFile, "secringFile");
+        this.pubringFile = requireNonNull(pubringFile, "pubringFile");
+        this.secringFile = requireNonNull(secringFile, "secringFile");
         this.mutex = pubringFile.getPgpId();
     }
 
@@ -96,7 +97,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public PgpKey getPgpKey(final PgpKeyId pgpKeyId) throws IllegalArgumentException
     {
         synchronized (mutex) {
-            assertNotNull(pgpKeyId, "pgpKeyId");
+            requireNonNull(pgpKeyId, "pgpKeyId");
             loadIfNeeded();
             final PgpKey pgpKey = pgpKeyId2pgpKey.get(pgpKeyId);
             return pgpKey;
@@ -119,7 +120,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public PgpKey getPgpKey(final PgpKeyFingerprint pgpKeyFingerprint) throws IllegalArgumentException
     {
         synchronized (mutex) {
-            assertNotNull(pgpKeyFingerprint, "pgpKeyFingerprint");
+            requireNonNull(pgpKeyFingerprint, "pgpKeyFingerprint");
             loadIfNeeded();
             final PgpKey pgpKey = pgpKeyFingerprint2pgpKey.get(pgpKeyFingerprint);
             return pgpKey;
@@ -325,7 +326,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
             final PgpKeyFingerprint certifyingPgpKeyFingerprint)
     {
         synchronized (mutex) {
-            assertNotNull(certifyingPgpKeyFingerprint, "signingPgpKeyFingerprint");
+            requireNonNull(certifyingPgpKeyFingerprint, "signingPgpKeyFingerprint");
             final PgpKey signingPgpKey = getPgpKey(certifyingPgpKeyFingerprint);
             if (signingPgpKey == null)
                 return Collections.emptySet();
@@ -410,7 +411,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     public List<PGPSignature> getCertifications(final PgpUserId pgpUserId)
     {
         synchronized (mutex) {
-            assertNotNull(pgpUserId, "pgpUserId");
+            requireNonNull(pgpUserId, "pgpUserId");
             final PGPPublicKey publicKey = pgpUserId.getPgpKey().getPublicKey();
 
             final IdentityHashMap<PGPSignature, PGPSignature> pgpSignatures = new IdentityHashMap<>();
@@ -475,7 +476,7 @@ public class PgpKeyRegistryImpl implements PgpKeyRegistry
     @Override
     public boolean isCertification(final PGPSignature pgpSignature)
     {
-        assertNotNull(pgpSignature, "pgpSignature");
+        requireNonNull(pgpSignature, "pgpSignature");
         return isCertification(pgpSignature.getSignatureType());
     }
 

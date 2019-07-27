@@ -1,6 +1,7 @@
 package org.bouncycastle.openpgp.wot.key;
 
 import static java.util.Arrays.*;
+import static java.util.Objects.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.Serializable;
@@ -21,14 +22,14 @@ public class PgpKeyFingerprint implements Comparable<PgpKeyFingerprint>, Seriali
 
     public PgpKeyFingerprint(final byte[] fingerprint)
     {
-        assertNotNull(fingerprint, "fingerprint");
+        requireNonNull(fingerprint, "fingerprint");
         // In order to guarantee that this instance is immutable, we must copy the input.
         this.fingerprint = copyOf(fingerprint, fingerprint.length);
     }
 
     public PgpKeyFingerprint(final String fingerprint)
     {
-        assertNotNull(fingerprint, "fingerprint");
+        requireNonNull(fingerprint, "fingerprint");
         this.fingerprint = decodeHexStr(fingerprint);
     }
 

@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot.internal;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 import org.bouncycastle.openpgp.wot.key.PgpUserId;
 
@@ -13,8 +13,8 @@ class PgpUserIdTrust
 
     public PgpUserIdTrust(final PgpKeyTrust pgpKeyTrust, final PgpUserId pgpUserId)
     {
-        this.pgpKeyTrust = assertNotNull(pgpKeyTrust, "pgpKeyTrust");
-        this.pgpUserId = assertNotNull(pgpUserId, "pgpUserId");
+        this.pgpKeyTrust = requireNonNull(pgpKeyTrust, "pgpKeyTrust");
+        this.pgpUserId = requireNonNull(pgpUserId, "pgpUserId");
     }
 
     public PgpKeyTrust getPgpKeyTrust()

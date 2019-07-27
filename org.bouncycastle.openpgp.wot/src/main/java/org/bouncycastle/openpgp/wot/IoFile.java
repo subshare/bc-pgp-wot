@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -16,7 +16,7 @@ public class IoFile implements PgpFile {
 	private final String pgpId;
 
 	public IoFile(File file) throws IOException {
-		this.file = assertNotNull(file, "file").getCanonicalFile();
+		this.file = requireNonNull(file, "file").getCanonicalFile();
 		this.pgpId = CanonicalString.canonicalize(file.getParentFile().getPath());
 	}
 

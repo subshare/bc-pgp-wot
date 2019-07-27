@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot.internal;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,7 +19,7 @@ class PgpKeyTrust
 
     public PgpKeyTrust(final PgpKey pgpKey)
     {
-        this.pgpKey = assertNotNull(pgpKey, "pgpKey");
+        this.pgpKey = requireNonNull(pgpKey, "pgpKey");
     }
 
     public PgpKey getPgpKey()
@@ -34,7 +34,7 @@ class PgpKeyTrust
 
     public PgpUserIdTrust getPgpUserIdTrust(final PgpUserId pgpUserId)
     {
-        assertNotNull(pgpUserId, "pgpUserId");
+        requireNonNull(pgpUserId, "pgpUserId");
         PgpUserIdTrust pgpUserIdTrust = nameHash2UserIdTrust.get(pgpUserId.getNameHash());
         if (pgpUserIdTrust == null)
         {

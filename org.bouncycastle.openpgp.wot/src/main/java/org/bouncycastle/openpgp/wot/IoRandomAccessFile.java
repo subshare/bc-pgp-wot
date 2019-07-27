@@ -1,5 +1,6 @@
 package org.bouncycastle.openpgp.wot;
 
+import static java.util.Objects.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.EOFException;
@@ -21,8 +22,8 @@ public class IoRandomAccessFile implements PgpRandomAccessFile {
 	private final FileLock fileLock;
 
 	public IoRandomAccessFile(IoFile ioFile) throws IOException {
-		this.ioFile = assertNotNull(ioFile, "ioFile");
-		this.file = assertNotNull(this.ioFile.getFile(), "ioFile.file");
+		this.ioFile = requireNonNull(ioFile, "ioFile");
+		this.file = requireNonNull(this.ioFile.getFile(), "ioFile.file");
 
 		RandomAccessFile raf = null;
         FileLock fileLock = null;

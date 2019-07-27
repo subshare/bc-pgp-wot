@@ -1,6 +1,6 @@
 package org.bouncycastle.openpgp.wot;
 
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
+import static java.util.Objects.*;
 
 /**
  * Utility class making {@code String} instances canonical in the memory.
@@ -26,7 +26,7 @@ public final class CanonicalString {
 	 * @return a canonical version of the given String. Never <code>null</code>.
 	 */
 	public static synchronized String canonicalize(final String string) {
-		assertNotNull(string, "string");
+		requireNonNull(string, "string");
 //		final WeakReference<String> ref = canonicalStringMap.get(string);
 //		String canonicalString = ref == null ? null : ref.get();
 //		if (canonicalString == null) {

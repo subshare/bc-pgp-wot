@@ -1,7 +1,7 @@
 package org.bouncycastle.openpgp.wot;
 
+import static java.util.Objects.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -161,7 +161,7 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	private static void deleteRecursively(File fileOrDir) {
-		assertNotNull(fileOrDir, "fileOrDir");
+		requireNonNull(fileOrDir, "fileOrDir");
 		fileOrDir.delete(); // first try to delete - if this is a symlink, this already succeeds
 
 		File[] children = fileOrDir.listFiles();
@@ -198,8 +198,8 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	public PgpKey signPublicKey(PgpKey signingKey, int certificationType, PgpKey signedKey) throws IOException, PGPException {
-		assertNotNull(signingKey, "signingKey");
-		assertNotNull(signedKey, "signedKey");
+		requireNonNull(signingKey, "signingKey");
+		requireNonNull(signedKey, "signedKey");
 
 		signedKey = pgpKeyRegistry.getPgpKey(signedKey.getPgpKeyId()); // maybe the given signedKey is stale!
 
@@ -215,7 +215,7 @@ public abstract class AbstractTrustDbTest {
 //		final int masterKeyAlgorithm = PublicKeyAlgorithmTags.RSA_SIGN;
 		final int masterKeyAlgorithm = signingKey.getPublicKey().getAlgorithm();
 
-		PGPSecretKey secretKey = assertNotNull(signingKey.getSecretKey(), "signingKey.secretKey");
+		PGPSecretKey secretKey = requireNonNull(signingKey.getSecretKey(), "signingKey.secretKey");
 		PGPPrivateKey privateKey = extractPrivateKey(secretKey, passphrase);
 
 		final BcPGPContentSignerBuilder signerBuilder = new BcPGPContentSignerBuilder(masterKeyAlgorithm, HashAlgorithmTags.SHA512);
@@ -275,7 +275,7 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	public PgpKey createPgpKey(final String userId) throws NoSuchAlgorithmException, IOException, PGPException {
-		assertNotNull(userId, "userId");
+		requireNonNull(userId, "userId");
 
 		// null causes an exception - empty is possible, though
 		char[] passphrase = new char[0];
@@ -316,8 +316,8 @@ public abstract class AbstractTrustDbTest {
 	}
 
 	private Pair<PGPPublicKeyRing, PGPSecretKeyRing> createPGPSecretKeyRing(final String userId, final char[] passphrase) throws PGPException, NoSuchAlgorithmException {
-		assertNotNull(userId, "userId");
-		assertNotNull(passphrase, "passphrase");
+		requireNonNull(userId, "userId");
+		requireNonNull(passphrase, "passphrase");
 
 		logger.info("createPGPSecretKeyRing: Creating PGP key: userId='{}'", userId);
 
