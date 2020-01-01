@@ -1,5 +1,14 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:4.3.1'
+	}
+}
+//apply plugin: 'java'
+// apply plugin: 'osgi'
+apply plugin: 'biz.aQute.bnd.builder'
 apply plugin: 'maven'
 
 //project.ext.bouncycastleVersion = '1.60'
@@ -45,4 +54,14 @@ uploadArchives {
             repository(url: mavenDeployerRepoUrl)
         }
     }
+}
+
+jar {
+	bnd (
+		'Automatic-Module-Name': 'org.bouncycastle.openpgp.wot'
+//		'Bundle-Name': 'overwrittenSpecialOsgiName',
+//		'Bundle-Vendor': 'MyCompany',
+//		'Bundle-Description': 'Platform2: Metrics 2 Measures Framework',
+//		'Bundle-DocURL': 'https://www.mycompany.com'
+	)
 }

@@ -1,6 +1,7 @@
 package org.bouncycastle.openpgp.wot.internal;
 
 import static java.util.Objects.*;
+import static org.bouncycastle.openpgp.wot.DateUtil.*;
 import static org.bouncycastle.openpgp.wot.internal.Util.*;
 
 import java.io.EOFException;
@@ -79,7 +80,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
         TrustRecord.Version version = new TrustRecord.Version();
         version.setVersion((short) 3);
-        version.setCreated(new Date());
+        version.setCreated(now());
         version.setNextCheck(version.getCreated()); // we should check it as soon as possible
         version.setMarginalsNeeded(config.getMarginalsNeeded());
         version.setCompletesNeeded(config.getCompletesNeeded());
@@ -103,7 +104,7 @@ class TrustDbIo implements AutoCloseable, TrustConst
 
             Config config = Config.getInstance();
 
-            version.setCreated(new Date());
+            version.setCreated(now());
             version.setNextCheck(nextCheck);
             version.setMarginalsNeeded(config.getMarginalsNeeded());
             version.setCompletesNeeded(config.getCompletesNeeded());

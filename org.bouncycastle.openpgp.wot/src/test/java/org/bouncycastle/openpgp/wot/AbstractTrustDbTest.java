@@ -2,6 +2,7 @@ package org.bouncycastle.openpgp.wot;
 
 import static java.util.Objects.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.bouncycastle.openpgp.wot.DateUtil.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -321,7 +322,7 @@ public abstract class AbstractTrustDbTest {
 
 		logger.info("createPGPSecretKeyRing: Creating PGP key: userId='{}'", userId);
 
-		final Date now = new Date();
+		final Date now = now();
 
 		final int masterKeyAlgorithm = PublicKeyAlgorithmTags.RSA_SIGN;
 		final int subKey1Algorithm = PublicKeyAlgorithmTags.RSA_ENCRYPT;

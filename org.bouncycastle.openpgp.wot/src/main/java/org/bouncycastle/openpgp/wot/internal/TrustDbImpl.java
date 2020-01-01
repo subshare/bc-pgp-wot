@@ -1,6 +1,7 @@
 package org.bouncycastle.openpgp.wot.internal;
 
 import static java.util.Objects.*;
+import static org.bouncycastle.openpgp.wot.DateUtil.*;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -595,7 +596,7 @@ public class TrustDbImpl implements TrustDb, TrustConst
                 return true;
             }
 
-            final Date now = new Date();
+            final Date now = now();
             if (version.getNextCheck().before(now))
             {
                 logger.debug("isTrustDbStale: stale=true nextCheck={} now={}",
