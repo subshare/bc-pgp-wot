@@ -15,7 +15,7 @@ apply plugin: 'maven'
 project.ext.bouncycastleVersion = '161b03'
 
 group = 'org.bouncycastle'
-version = '161b03.1'
+version = '161b03.2-SNAPSHOT'
 //version = '1.60.1-SNAPSHOT'
 //version = '1.60.0'
 
